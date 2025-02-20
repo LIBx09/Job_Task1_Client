@@ -65,7 +65,7 @@ const AddTask = () => {
             className="w-full border p-2 rounded-md"
           >
             <option value="To-Do">To-Do</option>
-            <option value="In Progress">In Progress</option>
+            <option value="In-Progress">In Progress</option>
             <option value="Done">Done</option>
           </select>
           {errors.category && (

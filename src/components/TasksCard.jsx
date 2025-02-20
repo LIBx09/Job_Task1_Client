@@ -6,9 +6,28 @@ import UpdateTask from "./UpdateTask";
 import { useState } from "react";
 
 const TasksCard = ({ task }) => {
-  //   console.log(task);
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: task._id });
+
+  // Delete Task
+  const deleteTask = (taskId) => {
+    if (!taskId) return console.error("Invalid Task ID");
+    socket.emit("delete_task", taskId.toString());
+  };
+
+  // Modal and Task Update
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+
+  const openModal = (task) => {
+    setSelectedTask(task);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedTask(null);
+  };
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -17,46 +36,54 @@ const TasksCard = ({ task }) => {
     marginBottom: "5px",
     border: "1px solid #ddd",
     backgroundColor: "#f9f9f9",
-  };
-
-  // Delete Task
-  const deleteTask = (taskId) => {
-    // console.log(`Deleting task: ${taskId}`);
-    if (!taskId) return console.error("Invalid Task ID");
-    socket.emit("delete_task", taskId.toString()); // Ensure taskId is a string
-  };
-
-  // Modal and Task Update
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState(null);
-
-  // Open the modal and pass the task to be updated
-  const openModal = (task) => {
-    setSelectedTask(task); // Set the task data to be updated
-    setIsModalOpen(true); // Open the modal
-  };
-
-  // Close the modal
-  const closeModal = () => {
-    setIsModalOpen(false); // Close the modal
-    setSelectedTask(null); // Reset selected task
+    position: "relative", // Added for handle positioning
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div ref={setNodeRef} style={style} {...attributes}>
+      {/* Dedicated drag handle */}
+      <div
+        className="drag-handle"
+        {...listeners}
+        style={{
+          cursor: "grab",
+          position: "absolute",
+          top: "5px",
+          right: "5px",
+          padding: "5px",
+        }}
+      >
+        🟰
+      </div>
+
       <h3>{task.title}</h3>
       <p>{task.description}</p>
       <small>📅 {new Date(task.timestamp).toLocaleString()}</small>
       <br />
-      <button className="btn" onClick={() => deleteTask(task._id)}>
+
+      <button
+        className="btn"
+        onClick={(e) => {
+          e.stopPropagation();
+          deleteTask(task._id);
+        }}
+        style={{ marginRight: "8px", marginTop: "8px" }}
+      >
         🗑 Delete
       </button>
-      <button className="btn" onClick={() => openModal(task)}>
-        🗑 Update
+
+      <button
+        className="btn"
+        onClick={(e) => {
+          e.stopPropagation();
+          openModal(task);
+        }}
+        style={{ marginTop: "8px" }}
+      >
+        📝 Update
       </button>
 
-      {/* Show the modal if open */}
-      {isModalOpen && (
+      {isModalOpen && selectedTask && (
         <UpdateTask task={selectedTask} closeModal={closeModal} />
       )}
     </div>
