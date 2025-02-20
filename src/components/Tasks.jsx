@@ -24,10 +24,17 @@ const Tasks = () => {
       );
     });
 
+    // Listen for the updated task list
+    socket.on("tasksUpdated", (updatedTasks) => {
+      console.log("✅ Tasks Updated:", updatedTasks); // Add logging to verify tasks
+      setGetTasks(updatedTasks); // Update tasks on the client after an update
+    });
+
     return () => {
       socket.off("task_data");
       socket.off("task_added");
       socket.off("task_deleted");
+      socket.off("tasksUpdated"); // Clean up the listener
     };
   }, []);
 

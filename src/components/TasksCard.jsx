@@ -2,8 +2,11 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import socket from "./Socket";
+import UpdateTask from "./UpdateTask";
+import { useState } from "react";
+
 const TasksCard = ({ task }) => {
-  console.log(task);
+  //   console.log(task);
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: task._id });
 
@@ -18,15 +21,25 @@ const TasksCard = ({ task }) => {
 
   // Delete Task
   const deleteTask = (taskId) => {
-    console.log(`Deleting task: ${taskId}`);
+    // console.log(`Deleting task: ${taskId}`);
     if (!taskId) return console.error("Invalid Task ID");
     socket.emit("delete_task", taskId.toString()); // Ensure taskId is a string
   };
 
-  const updateTask = (taskId) => {
-    console.log(`Updating task: ${taskId}`);
-    if (!taskId) return console.error("Invalid Task ID");
-    socket.emit("update_task", taskId.toString()); // Ensure taskId is a string
+  // Modal and Task Update
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+
+  // Open the modal and pass the task to be updated
+  const openModal = (task) => {
+    setSelectedTask(task); // Set the task data to be updated
+    setIsModalOpen(true); // Open the modal
+  };
+
+  // Close the modal
+  const closeModal = () => {
+    setIsModalOpen(false); // Close the modal
+    setSelectedTask(null); // Reset selected task
   };
 
   return (
@@ -38,9 +51,14 @@ const TasksCard = ({ task }) => {
       <button className="btn" onClick={() => deleteTask(task._id)}>
         🗑 Delete
       </button>
-      <button className="btn" onClick={() => updateTask(task._id)}>
-        🗑 update
+      <button className="btn" onClick={() => openModal(task)}>
+        🗑 Update
       </button>
+
+      {/* Show the modal if open */}
+      {isModalOpen && (
+        <UpdateTask task={selectedTask} closeModal={closeModal} />
+      )}
     </div>
   );
 };
