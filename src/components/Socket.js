@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 
 // Replace with your backend URL
-const SOCKET_SERVER_URL = "http://localhost:5000";
+const SOCKET_SERVER_URL = "https://job-task1-server.onrender.com";
 
 const socket = io(SOCKET_SERVER_URL, {
   transports: ["websocket"], // Ensure it uses WebSockets
