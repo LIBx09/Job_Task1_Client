@@ -1,8 +1,21 @@
+import { useContext } from "react";
 import { Link } from "react-router-dom";
+import { AuthContext } from "../../AuthProvider/AuthProvider";
 
 const Navbar = () => {
+  const { user, logout } = useContext(AuthContext);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
   return (
-    <div className="navbar bg-base-100">
+    <div className="navbar bg-base-100 shadow-md">
+      {/* Left side (Brand & Mobile Menu) */}
       <div className="navbar-start">
         <div className="dropdown">
           <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
@@ -33,8 +46,12 @@ const Navbar = () => {
             </li>
           </ul>
         </div>
-        <a className="btn btn-ghost text-xl">Tasksination</a>
+        <Link to="/" className="btn btn-ghost text-xl font-bold">
+          Tasksination
+        </Link>
       </div>
+
+      {/* Center (Navigation Links) */}
       <div className="navbar-center hidden lg:flex">
         <ul className="menu menu-horizontal px-1">
           <li>
@@ -45,9 +62,28 @@ const Navbar = () => {
           </li>
         </ul>
       </div>
+
+      {/* Right Side (Auth Buttons) */}
       <div className="navbar-end">
-        <a className="btn">Login</a>
-        <a className="btn">Register</a>
+        {user ? (
+          <>
+            <span className="mr-4 font-semibold text-sm">
+              {user.displayName || "User"}
+            </span>
+            <button onClick={handleLogout} className="btn btn-error text-white">
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            <Link to="/login" className="btn btn-primary">
+              Login
+            </Link>
+            <Link to="/register" className="btn btn-secondary ml-2">
+              Register
+            </Link>
+          </>
+        )}
       </div>
     </div>
   );

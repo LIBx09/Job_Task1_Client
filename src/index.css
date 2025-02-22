@@ -1,2 +1,5 @@
 @import "tailwindcss";
 @plugin "daisyui";
+.dnd-container {
+  touch-action: none; /* Prevent browser's default touch behaviors */
+}

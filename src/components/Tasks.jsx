@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import socket from "../components/Socket";
 import TasksCard from "../components/TasksCard";
-import { DndContext, closestCorners } from "@dnd-kit/core";
+import {
+  DndContext,
+  closestCorners,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -11,21 +18,41 @@ const Tasks = () => {
   const [getTasks, setGetTasks] = useState([]);
   const categories = ["To-Do", "In-Progress", "Done"];
 
+  // Enable drag and drop support for both desktop (mouse) and mobile (touch)
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }), // Mouse drag starts after moving 5px
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 200, tolerance: 5 },
+    }) // Touch drag starts after 200ms hold
+  );
+
   useEffect(() => {
+    // Request tasks from server
     socket.emit("getting_task");
 
     socket.on("task_data", (data) => {
       setGetTasks(data.tasks);
     });
 
-    // ... keep other socket listeners the same ...
+    socket.on("task_updated", (updatedTask) => {
+      setGetTasks((prev) =>
+        prev.map((t) => (t._id === updatedTask._id ? updatedTask : t))
+      );
+    });
+
+    socket.on("task_deleted", (taskId) => {
+      setGetTasks((prev) => prev.filter((t) => t._id !== taskId));
+    });
 
     return () => {
-      // ... keep cleanup the same ...
+      socket.off("task_data");
+      socket.off("getting_task");
+      socket.off("task_updated");
+      socket.off("task_deleted");
     };
   }, []);
 
-  // Fixed drag handler
+  // Handle drag event
   const handleDragEnd = (event) => {
     const { active, over } = event;
     if (!over) return;
@@ -41,7 +68,7 @@ const Tasks = () => {
         prev.map((t) => (t._id === updatedTask._id ? updatedTask : t))
       );
 
-      // Update server
+      // Send update to server
       socket.emit("update_task", updatedTask);
     }
   };
@@ -52,15 +79,19 @@ const Tasks = () => {
   };
 
   return (
-    <DndContext collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-3 gap-4 p-4">
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
         {categories.map((category) => (
           <div
             key={category}
             id={category}
-            className="border h-[400px] p-4 my-2 overflow-y-auto"
+            className="border h-[400px] p-4 my-2 overflow-y-auto rounded-lg shadow-md bg-white"
           >
-            <h2 className="font-bold text-xl mb-4">{category}</h2>
+            <h2 className="font-bold text-xl mb-4 text-center">{category}</h2>
 
             <SortableContext
               id={category}
@@ -72,7 +103,7 @@ const Tasks = () => {
                   <TasksCard key={task._id} task={task} />
                 ))
               ) : (
-                <p>No tasks available in {category}</p>
+                <p className="text-gray-500 text-center">No tasks available</p>
               )}
             </SortableContext>
           </div>

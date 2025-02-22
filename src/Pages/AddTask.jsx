@@ -1,8 +1,12 @@
 import { useForm } from "react-hook-form";
 import socket from "../components/Socket";
 import { toast } from "react-toastify";
+import { AuthContext } from "../AuthProvider/AuthProvider";
+import { useContext } from "react";
 
 const AddTask = () => {
+  const { user } = useContext(AuthContext);
+
   const {
     register,
     handleSubmit,
@@ -13,6 +17,8 @@ const AddTask = () => {
   const onSubmit = (data) => {
     const task = {
       ...data,
+      email: user.email,
+      orderIndex: "",
       timestamp: new Date().toISOString(),
     };
 
