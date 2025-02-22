@@ -4,7 +4,7 @@ A real-time task management application that allows users to create, move, and r
 
 ## 🚀 Live Demo
 
-[🔗 View Live Application](#) _(Replace with your live link)_
+https://iridescent-biscochitos-0afcfe.netlify.app/
 
 ## 📦 Dependencies
 
